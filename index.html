@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Immersion: Excel Data Display</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #FEFDED;
+    margin: 0;
+    margin: 130px 0 0 0; /* Add margin to the top to compensate for the fixed navbar */
+    padding: 0;
+  }
+
+  .navbar {
+    background-color: #FA7070;
+    overflow: hidden;
+    padding: 20px;
+    position: fixed; /* Add this line */
+    top: 0; /* Add this line */
+    width: 100%; /* Add this line */
+  }
+
+  .navbar a {
+    float: left;
+    color: white;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    font-size: 24px; /* Increased font size */
+  }
+
+  .wrapper {
+    margin: 20px;
+  }
+
+  table {
+    width: calc(100% - 40px);
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  th, td {
+    padding: 8px;
+    border: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #A1C398; /* Header color */
+    color: #fff;
+  }
+
+  tr:nth-child(even) {
+    background-color: #FEFDED; /* Even row color*/
+  }
+
+  tr:nth-child(odd) {
+    background-color: #E1F0DA; /* Odd row color*/
+  }
+
+  tr:hover {
+    background-color: #f2f2f2;
+  }
+
+  input[type="file"] {
+    margin: 20px;
+    float: right;
+    color: white;
+    cursor: pointer;
+  }
+
+  h1 {
+    margin: 20px;
+    display: inline;
+    font-size: 24px;
+  }
+</style>
+</head>
+<body>
+  <div class="navbar">
+    <a href="#">Immersion: <span id="pageTitle"></span></a>
+    <input type="file" id="fileInput" accept=".xlsx">
+  </div>
+  <div class="wrapper">
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Japanese</th>
+          <th>Hiragana</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      var reader = new FileReader();
+      
+      reader.onload = function(event) {
+        var data = new Uint8Array(event.target.result);
+        var workbook = XLSX.read(data, {type: 'array'});
+        var firstSheetName = workbook.SheetNames[0];
+        var firstSheet = workbook.Sheets[firstSheetName];
+        var range = XLSX.utils.decode_range(firstSheet['!ref']);
+        
+        var dataTable = document.getElementById('dataTable');
+        var tbody = dataTable.getElementsByTagName('tbody')[0];
+        tbody.innerHTML = '';
+
+        // Set page title based on filename (without extension)
+        var pageTitle = document.getElementById('pageTitle');
+        pageTitle.textContent = file.name.replace('.xlsx', '');
+
+        for (var i = range.s.r; i <= range.e.r; i++) {
+          var firstCell = firstSheet[XLSX.utils.encode_cell({r: i, c: 0})];
+          var secondCell = firstSheet[XLSX.utils.encode_cell({r: i, c: 1})];
+          if (firstCell && secondCell) {
+            var newRow = tbody.insertRow();
+            var firstColumnCell = newRow.insertCell();
+            var secondColumnCell = newRow.insertCell();
+            firstColumnCell.textContent = firstCell.v;
+            secondColumnCell.textContent = secondCell.v;
+          }
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>
